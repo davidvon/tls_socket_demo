@@ -1,6 +1,7 @@
 package tls;
 
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,6 +37,41 @@ public class Common {
         KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
         kmf.init(ks, password);
         return kmf;
+    }
+
+
+    public static SSLContext createSSLContext(String keystorePath, String truststorePath, String password, boolean needClientAuth) throws Exception {
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(Common.class.getClassLoader().getResourceAsStream(keystorePath), password.toCharArray());
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(ks, password.toCharArray());
+
+        KeyStore ts = KeyStore.getInstance("JKS");
+        ts.load(Common.class.getClassLoader().getResourceAsStream(truststorePath), password.toCharArray());
+
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+        tmf.init(ts);
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+        return sslContext;
+    }
+
+    public static SSLContext createSSLContext(String keyStorePath, String trustStorePath, String password) throws Exception {
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(Common.class.getClassLoader().getResourceAsStream(keyStorePath), password.toCharArray());
+        kmf.init(ks, password.toCharArray());
+
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+        KeyStore ts = KeyStore.getInstance("JKS");
+        ts.load(Common.class.getClassLoader().getResourceAsStream(trustStorePath), password.toCharArray());
+        tmf.init(ts);
+
+        SSLContext ctx = SSLContext.getInstance("TLS");
+        ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+        return ctx;
     }
 }
 
